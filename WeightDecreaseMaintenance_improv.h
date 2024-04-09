@@ -9,10 +9,13 @@ void WeightDecreaseMaintenance_improv_step1(int v1, int v2, weightTYPE w_new, ve
 		if (sl == 1) {
 			swap(v1, v2);
 		}
+		//第一次遍历L(a) 第二次遍历L(b)
 		for (auto it : (*L)[v1]) {
+			//即r(v)>=r(b) 从小到大排序
 			if (it.vertex <= v2) {
 				results_dynamic.emplace_back(pool_dynamic.enqueue([it, v2, L, PPR, w_new, CL] {
-
+					
+					//计算Query距离
 					auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, it.vertex, v2); // query_result is {distance, common hub}
 					if (query_result.first > it.distance + w_new) {
 						mtx_595_1.lock();
@@ -20,6 +23,7 @@ void WeightDecreaseMaintenance_improv_step1(int v1, int v2, weightTYPE w_new, ve
 						mtx_595_1.unlock();
 					}
 					else {
+						//L(b)[v]
 						auto search_result = search_sorted_two_hop_label((*L)[v2], it.vertex);
 						if (search_result > it.distance + w_new && search_result != MAX_VALUE) {
 							mtx_595_1.lock();

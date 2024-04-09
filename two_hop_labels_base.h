@@ -91,7 +91,7 @@ public:
 		long long int size = 0;
 		for (int i = 0; i < PPR.size(); i++) {
 			for (int j = 0; j < PPR[i].size(); j++) {
-				size = size + (PPR[i][j].second.size() + 1) * sizeof(int); // + 1 ¶ÔÓ¦ PPR[i][j].first
+				size = size + (PPR[i][j].second.size() + 1) * sizeof(int); // + 1 ï¿½ï¿½Ó¦ PPR[i][j].first
 			}
 		}
 		return size;

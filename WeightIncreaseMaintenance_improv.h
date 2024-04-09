@@ -3,12 +3,37 @@
 #include <queue>
 #include <build_in_progress/HL/dynamic/PLL_dynamic.h>
 
+// ThreadPool
 void SPREAD1(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>* L,
 	std::vector<affected_label>& al1, std::vector<pair_label>* al2, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	/*TO DO 2*/
-	//my part
-
+	//遍历AL1
+	for(auto it:al1){
+		std::queue<std::pair<int,weightTYPE>> Q;
+		Q.push(std::make_pair(it->first, it->dis));
+		int v=it->second;
+		while(!Q.empty()){
+			std::pair<int,weightTYPE> temp=Q.front();
+			Q.pop();
+			int x=temp.first;
+			weightTYPE dx=temp.second;
+			L[x][v].distance=MAX_VALUE;
+			al2.push_back(pair_label(x,v));
+			//遍历x的邻接点
+			int x_adj_size=ideal_graph_595[x].size();
+			for(int i=0; i<x_adj_size; i++){
+				int xn=ideal_graph_595[x][i].first;
+				weightTYPE ec = ideal_graph_595[x][i].second;
+				//r(v)>=r(xn)
+				if(v<=xn){
+					//if (𝑣, 𝑑𝑥 + 𝑤(𝑥, 𝑥𝑛 ) ) ∈ 𝐿(𝑥𝑛 ) then 𝑄𝑢𝑒𝑢𝑒.𝑝𝑢𝑠ℎ( (𝑥𝑛, 𝑑𝑥 + 𝑤(𝑥, 𝑥𝑛 ) ) )
+					if(v<L[xn].size() && L[xn][v]==dx+ec)
+					Q.push(std::make_pair(xn,dx+ec));
+				}
+			}
+		}
+	}
 }
 
 void SPREAD2(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR,
@@ -23,7 +48,7 @@ void SPREAD3(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 
 	/*TO DO 4*/
 }
-
+//G、L、PPR、a、b、w0 v1->a v2->b mm.L->v+d 
 void WeightIncreaseMaintenance_improv(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_old, weightTYPE w_new,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 

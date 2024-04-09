@@ -59,7 +59,7 @@ void PLL_thread_function_dij_mixed(int v_k, int N)
 		node = Q.top();
 		Q.pop();
 		int u = node.vertex;
-
+		//Pu是dv
 		if (v_k <= u) { // this pruning condition is not in the original 2013 PLL paper
 			weightTYPE P_u = node.priority_value;
 			weightTYPE P_u_with_error = P_u + 1e-5;
@@ -98,12 +98,14 @@ void PLL_thread_function_dij_mixed(int v_k, int N)
 				/*下面是dij更新邻接点的过程，同时更新优先队列和距离*/
 				int u_adj_size = ideal_graph_595[u].size();
 				for (int i = 0; i < u_adj_size; i++) {
+					//adj_v->x pu->dv
 					int adj_v = ideal_graph_595[u][i].first; // this needs to be locked
 					weightTYPE ec = ideal_graph_595[u][i].second;
 
 					if (P_dij_595[used_id][adj_v] == std::numeric_limits<weightTYPE>::max()) { //尚未到达的点
 						node.vertex = adj_v;
 						node.priority_value = P_u + ec;
+						//插入过程
 						Q_handles[adj_v] = Q.push(node);
 						P_dij_595[used_id][adj_v] = node.priority_value;
 						P_changed_vertices.push(adj_v);
