@@ -39,9 +39,28 @@ void SPREAD1(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 void SPREAD2(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR,
 	std::vector<pair_label>& al2, std::vector<affected_label>* al3, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
-	/*TO DO 3*/
+	for (auto& pair : al2) {
+		int u1 = pair.first;
+		int u2 = pair.second;
+		weightTYPE w = pair.dis;
 
+		// 查找u1和u2的邻居节点
+		vector<int> neighbors_u1 = instance_graph[u1];
+		vector<int> neighbors_u2 = instance_graph[u2];
+
+		// 遍历u1和u2的邻居节点
+		for (int v1 : neighbors_u1) {
+			for (int v2 : neighbors_u2) {
+				// 计算新生成标签的距离
+				weightTYPE new_dis = w + instance_graph.get_weight(u1, v1) + instance_graph.get_weight(u2, v2);
+
+				// 添加新标签到al3中
+				al3->push_back(affected_label(v1, v2, new_dis));
+			}
+		}
+	}
 }
+
 
 void SPREAD3(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR, std::vector<affected_label>& al3,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
