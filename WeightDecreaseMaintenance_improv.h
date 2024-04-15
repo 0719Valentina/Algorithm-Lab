@@ -3,7 +3,8 @@
 #include <build_in_progress/HL/dynamic/PLL_dynamic.h>
 
 void WeightDecreaseMaintenance_improv_step1(int v1, int v2, weightTYPE w_new, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR, std::vector<affected_label>* CL,
-	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
+	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) 
+{
 
 	for (int sl = 0; sl < 2; sl++) {
 		if (sl == 1) {
@@ -54,9 +55,10 @@ void WeightDecreaseMaintenance_improv_step1(int v1, int v2, weightTYPE w_new, ve
 }
 
 void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR, std::vector<affected_label>& CL,
-	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
+	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) 
+{
 
-	/*TO DO 1*/
+	
 }
 
 void WeightDecreaseMaintenance_improv(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_old, weightTYPE w_new,
