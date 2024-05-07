@@ -59,14 +59,14 @@ void SPREAD3(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 
 			if(query_result.first <= du){
 				if (query_result.second != v) {
-						mtx_5952[v2].lock();
+						mtx_5952[u].lock();
 						PPR_insert(*PPR, u, query_result.second, v);
-						mtx_5952[v2].unlock();
+						mtx_5952[u].unlock();
 					}
 				if (query_result.second != u) {
-						mtx_5952[it.vertex].lock();
+						mtx_5952[v].lock();
 						PPR_insert(*PPR, v, query_result.second, u);
-						mtx_5952[it.vertex].unlock();
+						mtx_5952[v].unlock();
 					}
 				continue;
 			}
@@ -113,6 +113,30 @@ void SPREAD3(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 					if(DIS[xn] > dx+ec){
 						DIS[xn]=dx+ec;
 						//update 查看Q中是否有xn
+						auto it = std::find_if(Q.begin(), Q.end(), [xn](const PLL_dynamic_node_for_sp& node){ return node.vertex == xn; });
+						if(it!=Q.end()){
+							it->priority_value=DIS[xn];
+							Q.update(it);
+						}
+						else{
+							PLL_dynamic_node_for_sp new_node;
+							new_node.vertex = xn;
+							new_node.priority_value = DIS[xn];
+							Q.push(new_node);
+						}
+					}
+					else{
+						auto query_result2 = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, xn, v);
+						if (query_result2.second != v) {
+						mtx_5952[xn].lock();
+						PPR_insert(*PPR, xn, query_result2.second, v);
+						mtx_5952[xn].unlock();
+					}
+						if (query_result2.second != xn) {
+						mtx_5952[v].lock();
+						PPR_insert(*PPR, v, query_result2.second, xn);
+						mtx_5952[v].unlock();
+					}
 					}
 				}
 			}
