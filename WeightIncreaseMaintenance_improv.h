@@ -28,7 +28,8 @@ void SPREAD1(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 				//r(v)>=r(xn)
 				if(v<=xn){
 					//if (𝑣, 𝑑𝑥 + 𝑤(𝑥, 𝑥𝑛 ) ) ∈ 𝐿(𝑥𝑛 ) then 𝑄𝑢𝑒𝑢𝑒.𝑝𝑢𝑠ℎ( (𝑥𝑛, 𝑑𝑥 + 𝑤(𝑥, 𝑥𝑛 ) ) )
-					if(v<L[xn].size() && L[xn][v].distance==dx+ec)
+					auto search_result = search_sorted_two_hop_label((*L)[xn], v);
+					if(search_result==dx+ec)
 					Q.push(std::make_pair(xn,dx+ec));
 				}
 			}
@@ -77,21 +78,20 @@ void SPREAD3(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 
 			if(query_result.first <= du){
 				if (query_result.second != v) {
-						mtx_5952[v2].lock();
+						mtx_5952[u].lock();
 						PPR_insert(*PPR, u, query_result.second, v);
-						mtx_5952[v2].unlock();
+						mtx_5952[u].unlock();
 					}
 				if (query_result.second != u) {
-						mtx_5952[it.vertex].lock();
+						mtx_5952[v].lock();
 						PPR_insert(*PPR, v, query_result.second, u);
-						mtx_5952[it.vertex].unlock();
+						mtx_5952[v].unlock();
 					}
 				continue;
 			}
 
 		//初始化dis数组 
 		std::vector<int> DIS;
-		// typedef std::vector<std::vector<std::pair<int, double>>> graph_v_of_v_idealID;
 		int v_size=instance_graph.size();
 		for(int i=0; i<v_size; i++){
 			if(i==u)
@@ -100,16 +100,22 @@ void SPREAD3(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 			DIS[i]=-1;
 		}
 
-		//初始化Q
-		std::queue<std::pair<int,weightTYPE>> Q;
-		Q.push(std::make_pair(u, du));
+		//初始化Q 斐波那契堆 最小堆
+		boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp> Q;
+		PLL_dynamic_node_for_sp node;
+		node.vertex = u;
+		node.priority_value = du;
+		
+		Q.push(node);
 
-		while(!Q.empty()){
-			std::pair<int,weightTYPE> temp=Q.front();
+		while(Q.size()>0){
+			node=Q.top();
 			Q.pop();
-			int x=temp.first;
-			weightTYPE dx=temp.second;
 
+			int x=node.vertex;
+			weightTYPE dx=node.priority_value;
+
+			//取Min值
 			if(dx < L[x][v].distance)
 			L[x][v].distance=dx;
 
@@ -121,11 +127,35 @@ void SPREAD3(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 				//r(v)>=r(xn)
 				if(v<=xn){
 					if(DIS[xn]==-1)
-					DIS[xn]=graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, xn, v);
+					DIS[xn]=graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L, xn, v); // query_result is {distance, common hub};
 					
 					if(DIS[xn] > dx+ec){
 						DIS[xn]=dx+ec;
-						//update
+						//update 查看Q中是否有xn
+						auto it = std::find_if(Q.begin(), Q.end(), [xn](const PLL_dynamic_node_for_sp& node){ return node.vertex == xn; });
+						if(it!=Q.end()){
+							it->priority_value=DIS[xn];
+							Q.update(it);
+						}
+						else{
+							PLL_dynamic_node_for_sp new_node;
+							new_node.vertex = xn;
+							new_node.priority_value = DIS[xn];
+							Q.push(new_node);
+						}
+					}
+					else{
+						auto query_result2 = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, xn, v);
+						if (query_result2.second != v) {
+						mtx_5952[xn].lock();
+						PPR_insert(*PPR, xn, query_result2.second, v);
+						mtx_5952[xn].unlock();
+					}
+						if (query_result2.second != xn) {
+						mtx_5952[v].lock();
+						PPR_insert(*PPR, v, query_result2.second, xn);
+						mtx_5952[v].unlock();
+					}
 					}
 				}
 			}
