@@ -87,7 +87,7 @@ void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 				if(v<xn)
 				{
 					if(Dis[xn]==-1) Dis[xn]=graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L,xn,v);
-					int dnew=dx+w;
+					weightTYPE dnew=dx+w;
 					if(Dis[xn]>dnew)
 					{
 						Dis[xn]=dnew;
@@ -104,16 +104,16 @@ void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 					}else 
 					{
 						auto result = search_sorted_two_hop_label2((*L)[xn], x);
-						int Qxn=0;
-						std::priority_queue<std::pair<weightTYPE, int>> temp_q(Q); // 创建 Q 的副本
-    					while (!temp_q.empty())
-						{
-        					auto [priority, vertex] = temp_q.top();
-        					temp_q.pop();
-        					if (vertex == xn) Qxn=priority;
-    					}
+						
+						auto it2 = Q.find(xn);
+						weightTYPE Qxn=it2->second;
+						
 						int min=(Qxn>result.first)?result.first:Qxn;
-        				if (result.second != MAX_VALUE && min>dnew)	Q.emplace(dnew,xn);
+						
+        				if (result.second != MAX_VALUE && min>dnew){
+						if(it2 != Q.end()) it2->second=dnew;
+						else Q.emplace(dnew, xn);
+					}
 
 						auto query_result2 = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, x, xn);
 						PPR_insert(*PPR, xn, query_result2.second, x);
