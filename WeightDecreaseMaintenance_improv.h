@@ -116,8 +116,18 @@ void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 					}
 
 						auto query_result2 = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, x, xn);
-						PPR_insert(*PPR, xn, query_result2.second, x);
-						PPR_insert(*PPR, x, query_result2.second, xn);
+						if (query_result2.second != x) {
+							mtx_5952[xn].lock();
+							PPR_insert(*PPR, xn, query_result2.second, x);
+							mtx_5952[xn].unlock();
+						}
+						if (query_result.second != xn) {
+							mtx_5952[x].lock();
+							PPR_insert(*PPR, x, query_result2.second, xn);
+							mtx_5952[x].unlock();
+						}
+						// PPR_insert(*PPR, xn, query_result2.second, x);
+						// PPR_insert(*PPR, x, query_result2.second, xn);
 					}
 				}
 
