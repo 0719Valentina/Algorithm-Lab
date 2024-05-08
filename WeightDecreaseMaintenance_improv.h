@@ -84,7 +84,7 @@ void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 			{
 				int xn=neighbor.first;
 				weightTYPE w=neighbor.second;
-				if(x>xn)
+				if(v<xn)
 				{
 					if(Dis[xn]==-1) Dis[xn]=graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L,xn,x);
 					int dnew=dx+w;
