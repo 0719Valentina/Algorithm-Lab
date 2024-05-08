@@ -216,8 +216,8 @@ void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 				L[x][v].distance = dx;
 
 			// 遍历x的邻接点
-			// int x_adj_size = ideal_graph_595[x].size();
-			for (const auto &neighbor : instance_graph[x]) // for (int i = 0; i < x_adj_size; i++)
+			
+			for (const auto &neighbor : instance_graph[x])
 			{
 				int xn = neighbor.first;
 				weightTYPE ec = neighbor.second;
