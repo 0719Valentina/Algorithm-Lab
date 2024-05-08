@@ -8,32 +8,106 @@ void SPREAD1(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 	std::vector<affected_label>& al1, std::vector<pair_label>* al2, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	/*TO DO 2*/
-	//遍历AL1
-	for(auto it:al1){
-		std::queue<std::pair<int,weightTYPE>> Q;
-		Q.push(std::make_pair(it->first, it->dis));
-		int v=it->second;
-		while(!Q.empty()){
-			std::pair<int,weightTYPE> temp=Q.front();
-			Q.pop();
-			int x=temp.first;
-			weightTYPE dx=temp.second;
-			L[x][v].distance=MAX_VALUE;
-			al2.push_back(pair_label(x,v));
-			//遍历x的邻接点
-			int x_adj_size=ideal_graph_595[x].size();
-			for(int i=0; i<x_adj_size; i++){
-				int xn=ideal_graph_595[x][i].first;
-				weightTYPE ec = ideal_graph_595[x][i].second;
-				//r(v)>=r(xn)
-				if(v<=xn){
-					//if (𝑣, 𝑑𝑥 + 𝑤(𝑥, 𝑥𝑛 ) ) ∈ 𝐿(𝑥𝑛 ) then 𝑄𝑢𝑒𝑢𝑒.𝑝𝑢𝑠ℎ( (𝑥𝑛, 𝑑𝑥 + 𝑤(𝑥, 𝑥𝑛 ) ) )
-					auto search_result = search_sorted_two_hop_label((*L)[xn], v);
-					if(search_result==dx+ec)
-					Q.push(std::make_pair(xn,dx+ec));
+	for (auto it : al2)
+	{
+		int x = it.first;
+		int y = it.second;
+		// weightTYPE w = it.dis;
+		for (auto t : (PPR[x][y] || y)) // If 𝑡 ∈ 𝑃𝑃𝑅[𝑥, 𝑦] ∪ 𝑦
+		{
+			// if 𝑟 (𝑡) > 𝑟 (𝑥 )
+			if (t > x)
+			{
+				// 在xn中循环找到最小值
+				weightTYPE d1x_t = MAX_VALUE; // 初始化无穷大
+				int x_adj_size = ideal_graph_595[x].size();
+				for (int i = 0; i < x_adj_size; i++)
+				{
+					int xn = ideal_graph_595[x][i].first;
+					auto search_result = search_sorted_two_hop_label((*L)[xn], t);
+					weightTYPE ec = ideal_graph_595[x][i].second;
+					if (d1x_t > ec + search_result)
+					{
+						d1x_t = ec + search_result;
+					}
+				}
+
+				// if 𝑄𝑢𝑒𝑟𝑦(𝑥, 𝑡, 𝐿) > 𝑑1(𝑥, 𝑡) then 𝐴𝐿3.𝑝𝑢𝑠ℎ( (𝑥, 𝑡, 𝑑1(𝑥, 𝑡) ) )
+				if (graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L, x, t) > d1x_t)
+				{
+					al3.push_back(affected_label(x, t, d1x_t));
+				}
+				else // else 𝑃𝑃𝑅[𝑥, ℎ𝑐 ].𝑝𝑢𝑠ℎ(𝑡), 𝑃𝑃𝑅[𝑡, ℎ𝑐 ].𝑝𝑢𝑠ℎ(𝑥 )
+				{
+					auto query_result2 = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, x, t);
+
+					PPR_insert(*PPR, x, query_result2.second, t);
+					PPR_insert(*PPR, t, query_result2.second, x);
+
+					/*
+					auto query_result2 = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, x, t);
+					if (query_result2.second != t)
+					{
+						mtx_5952[x].lock();
+						PPR_insert(*PPR, x, query_result2.second, t);
+						mtx_5952[x].unlock();
+					}
+					if (query_result2.second != x)
+					{
+						mtx_5952[t].lock();
+						PPR_insert(*PPR, t, query_result2.second, x);
+						mtx_5952[t].unlock();
+					}
+					*/
+				}
+			}
+			else if (t < u1)
+			{
+				// 在xn中循环找到最小值
+				weightTYPE d1t_x = MAX_VALUE; // 初始化无穷大
+				int t_adj_size = ideal_graph_595[t].size();
+				for (int i = 0; i < t_adj_size; i++)
+				{
+					int tn = ideal_graph_595[t][i].first;
+					auto search_result = search_sorted_two_hop_label((*L)[tn], x);
+					weightTYPE ec = ideal_graph_595[t][i].second;
+					if (d1t_x > ec + search_result)
+					{
+						d1t_x = ec + search_result;
+					}
+				}
+
+				// if 𝑄𝑢𝑒𝑟𝑦(𝑥, 𝑡, 𝐿) > 𝑑1(𝑥, 𝑡) then 𝐴𝐿3.𝑝𝑢𝑠ℎ( (𝑥, 𝑡, 𝑑1(𝑥, 𝑡) ) )
+				if (graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L, t, x) > d1t_x)
+				{
+					al3.push_back(affected_label(t, x, d1t_x));
+				}
+				else // else 𝑃𝑃𝑅[𝑥, ℎ𝑐 ].𝑝𝑢𝑠ℎ(𝑡), 𝑃𝑃𝑅[𝑡, ℎ𝑐 ].𝑝𝑢𝑠ℎ(𝑥 )
+				{
+					auto query_result2 = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, t, x);
+
+					PPR_insert(*PPR, t, query_result2.second, x);
+					PPR_insert(*PPR, x, query_result2.second, t);
+
+					/*
+					auto query_result2 = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, t, x);
+					if (query_result2.second != x)
+					{
+						mtx_5952[t].lock();
+						PPR_insert(*PPR, t, query_result2.second, x);
+						mtx_5952[t].unlock();
+					}
+					if (query_result2.second != t)
+					{
+						mtx_5952[x].lock();
+						PPR_insert(*PPR, x, query_result2.second, t);
+						mtx_5952[x].unlock();
+					}
+					*/
 				}
 			}
 		}
+		
 	}
 }
 
