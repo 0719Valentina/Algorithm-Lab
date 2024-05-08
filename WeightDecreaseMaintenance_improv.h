@@ -113,7 +113,7 @@ void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
         					if (vertex == xn) Qxn=priority;
     					}
 						int min=(Qxn>result.first)?result.first:Qxn;
-        				if (result.second != -1&&min>dnew)	Q.emplace(dnew,xn);
+        				if (result.second != MAX_VALUE && min>dnew)	Q.emplace(dnew,xn);
 
 						auto query_result2 = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, x, xn);
 						PPR_insert(*PPR, xn, query_result2.second, x);
