@@ -60,77 +60,75 @@ void WeightDecreaseMaintenance_improv_step1(int v1, int v2, weightTYPE w_new, ve
 void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR, std::vector<affected_label>& CL,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic)
 {
-    for (const auto& al : CL) 
+	for(auto&cl:CL)
 	{
-        results_dynamic.emplace_back(pool_dynamic.enqueue([L, PPR, al, &instance_graph] 
+		int u=cl.first;
+		int v=cl.second;
+		weightTYPE du=cl.dis;
+
+		//初始化
+		std::vector<weightTYPE>Dis(instance_graph.size(),-1);
+		Dis[u]=du;
+		std::priority_queue<std::pair<weightTYPE,int>>Q;
+		Q.emplace(du,u);
+
+		//处理
+		while(!Q.empty())
 		{
+			weightTYPE dx=Q.top().first;
+			int x=Q.top().second;
+			Q.pop();
+			(*L)[x][v].distance=dx;
 
-            std::vector<weightTYPE> Dis(instance_graph.get_num_vertices(), -1);
-            Dis[al.first] = al.dis;
-            std::priority_queue<std::pair<weightTYPE, int>> Q;
-            Q.emplace(al.dis, al.first);
-
-            while (!Q.empty()) 
+			for(const auto&neighbor:instance_graph[x])
 			{
-                int x = Q.top().second;
-                weightTYPE d_x = Q.top().first;
-                Q.pop();
-
-            
-                auto& label_list = (*L)[x];
-                auto it = std::lower_bound(label_list.begin(), label_list.end(), al.second, [](const two_hop_label_v1& l, int v) {
-                    return l.vertex < v;
-                });
-                if (it != label_list.end() && it->vertex == al.second) {
-                    it->distance = d_x;
-                }
-                else {
-                    label_list.emplace(it, al.second, d_x);
-                }
-
-               
-                for (int x_n : instance_graph.get_neighbors(x))
+				int xn=neighbor.first;
+				weightTYPE w=neighbor.second;
+				if(x>xn)
 				{
-                    if () 
+					if(Dis[xn]==-1) Dis[xn]=graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L,xn,x);
+					int dnew=dx+w;
+					if(Dis[xn]>dnew)
 					{
-                        if (Dis[x_n] == -1) {
-                            Dis[x_n] = instance_graph.graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L,x, x_n) + d_x;
-                            Q.emplace(Dis[x_n], x_n);
-                        }
-                        else if (Dis[x_n] > instance_graph.graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L,x, x_n)(x, x_n) + d_x) {
-                            Dis[x_n] = instance_graph.graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L,x, x_n)(x, x_n) + d_x;
-                            Q.emplace(Dis[x_n], x_n);
-                        }
-                        else if (al.second == (*L)[x_n].back().vertex && Dis[x_n] > instance_graph.graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L,x, x_n)(x, x_n) + d_x) {
-                            Dis[x_n] = instance_graph.graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L,x, x_n)(x, x_n) + d_x;
-                            Q.emplace(Dis[x_n], x_n);
-                        }
-                    }
-                }
+						Dis[xn]=dnew;
+						Q.emplace(Dis[xn],xn);
+					}else 
+					{
+						auto result = search_sorted_two_hop_label2((*L)[xn], x);
+						int Qxn=0;
+						std::priority_queue<std::pair<weightTYPE, int>> temp_q(Q); // 创建 Q 的副本
+    					while (!temp_q.empty())
+						{
+        					auto [priority, vertex] = temp_q.top();
+        					temp_q.pop();
+        					if (vertex == xn) Qxn=priority;
+    					}
+						int min=(Qxn>result.first)?result.first:Qxn;
+        				if (result.second != -1&&min>dnew)	Q.emplace(dnew,xn);
 
-        
-                int h_c = al.second;
-                if (Dis[x] == instance_graph.graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L,x, x_n)(x, al.first) + al.dis) 
-				{
-                    h_c = instance_graph.graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(L,x, x_n)(al.first);
-                }
-                mtx_5952[x].lock();
-                PPR_insert(*PPR, x, h_c, al.second);
-                mtx_5952[x].unlock();
-                mtx_5952[al.second].lock();
-                PPR_insert(*PPR, al.second, h_c, x);
-                mtx_5952[al.second].unlock();
+						 for (const auto& label_xn : L[xn])
+						{
+							for (const auto& label_x : L[x])
+							{
+								if (label_xn.vertex == label_x.vertex)
+								{
+									PPR_insert(*PPR,xn,label_x.vertex, x);
+									PPR_insert(*PPR,x,label_x.vertex,xn);
+								}
+							}
+						}
+					}
+				}
 
-                return 1;
-            }
-        }));
-    }
+			}
+			
+		}
 
-    for (auto&& result : results_dynamic) {
-        result.get();
-    }
-    std::vector<std::future<int>>().swap(results_dynamic);
-
+	}
+	for (auto&& result : results_dynamic){
+		result.get();
+	}
+	std::vector<std::future<int>>().swap(results_dynamic);
 }
 
 
