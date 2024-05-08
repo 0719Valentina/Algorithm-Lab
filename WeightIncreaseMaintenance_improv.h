@@ -175,14 +175,17 @@ void SPREAD3(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 			}
 
 		//初始化dis数组 
-		std::vector<int> DIS;
-		int v_size=instance_graph.size();
-		for(int i=0; i<v_size; i++){
-			if(i==u)
-			DIS[i]=du;
-			else
-			DIS[i]=-1;
-		}
+		// std::vector<int> DIS;
+		// int v_size=instance_graph.size();
+		// for(int i=0; i<v_size; i++){
+		// 	if(i==u)
+		// 	DIS[i]=du;
+		// 	else
+		// 	DIS[i]=-1;
+		// }
+
+		std::vector<weightTYPE>Dis(instance_graph.size(),-1);
+		Dis[u]=du;
 
 		//初始化Q 斐波那契堆 最小堆
 		boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp> Q;
