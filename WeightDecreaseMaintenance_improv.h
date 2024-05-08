@@ -86,12 +86,21 @@ void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 				weightTYPE w=neighbor.second;
 				if(v<xn)
 				{
-					if(Dis[xn]==-1) Dis[xn]=graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L,xn,x);
+					if(Dis[xn]==-1) Dis[xn]=graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L,xn,v);
 					int dnew=dx+w;
 					if(Dis[xn]>dnew)
 					{
 						Dis[xn]=dnew;
-						Q.emplace(Dis[xn],xn);
+						//insert or update
+						// Q.emplace(Dis[xn],xn);
+						auto it = Q.find(xn); // 查找 xn 是否已经存在于 Q 中
+						if (it != Q.end()) {
+   						 // 如果 xn 存在，则更新其值为 Dis[xn]
+    						it->second = Dis[xn];
+						} else {
+    						// 否则，插入新元素 (Dis[xn], xn)
+   						 Q.emplace(Dis[xn], xn);
+						}
 					}else 
 					{
 						auto result = search_sorted_two_hop_label2((*L)[xn], x);
