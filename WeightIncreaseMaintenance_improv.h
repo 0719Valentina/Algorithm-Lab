@@ -35,7 +35,7 @@ void SPREAD1(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 				{
 					// if (𝑣, 𝑑𝑥 + 𝑤(𝑥, 𝑥𝑛 ) ) ∈ 𝐿(𝑥𝑛 ) then 𝑄𝑢𝑒𝑢𝑒.𝑝𝑢𝑠ℎ( (𝑥𝑛, 𝑑𝑥 + 𝑤(𝑥, 𝑥𝑛 ) ) )
 					auto search_result = search_sorted_two_hop_label((*L)[xn], v);
-					if (search_result == dx + ec)
+					if (abs(search_result-dx-ec) < 1e-5)
 						Q.push(std::make_pair(xn, dx + ec));
 				}
 			}
@@ -216,8 +216,8 @@ void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 				L[x][v].distance = dx;
 
 			// 遍历x的邻接点
-			
-			for (const auto &neighbor : instance_graph[x])
+			// int x_adj_size = ideal_graph_595[x].size();
+			for (const auto &neighbor : instance_graph[x]) // for (int i = 0; i < x_adj_size; i++)
 			{
 				int xn = neighbor.first;
 				weightTYPE ec = neighbor.second;
