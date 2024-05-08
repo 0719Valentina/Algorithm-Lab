@@ -30,8 +30,8 @@ void SPREAD1(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 			{
 				int xn = neighbor.first;
 				weightTYPE ec = neighbor.second;
-				// r(v)>=r(xn)
-				if (v <= xn)
+				// r(v)>r(xn)
+				if (v < xn)
 				{
 					// if (𝑣, 𝑑𝑥 + 𝑤(𝑥, 𝑥𝑛 ) ) ∈ 𝐿(𝑥𝑛 ) then 𝑄𝑢𝑒𝑢𝑒.𝑝𝑢𝑠ℎ( (𝑥𝑛, 𝑑𝑥 + 𝑤(𝑥, 𝑥𝑛 ) ) )
 					auto search_result = search_sorted_two_hop_label((*L)[xn], v);
