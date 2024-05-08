@@ -20,9 +20,12 @@ void SPREAD1(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 			int x = temp.first;
 			weightTYPE dx = temp.second;
 			L[x][v].distance = MAX_VALUE;
+			mtx_595_1.lock();
 			al2.push_back(pair_label(x, v));
+			mtx_595_1.unlock();
+
 			// 遍历x的邻接点
-			//int x_adj_size = ideal_graph_595[x].size();
+			// int x_adj_size = ideal_graph_595[x].size();
 			for (const auto &neighbor : instance_graph[x]) // for (int i = 0; i < x_adj_size; i++)
 			{
 				int xn = neighbor.first;
@@ -70,16 +73,19 @@ void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 				// if 𝑄𝑢𝑒𝑟𝑦(𝑥, 𝑡, 𝐿) > 𝑑1(𝑥, 𝑡) then 𝐴𝐿3.𝑝𝑢𝑠ℎ( (𝑥, 𝑡, 𝑑1(𝑥, 𝑡) ) )
 				if (graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L, x, t) > d1x_t)
 				{
+					mtx_595_1.lock();
 					al3.push_back(affected_label(x, t, d1x_t));
+					mtx_595_1.unlock();
 				}
 				else // else 𝑃𝑃𝑅[𝑥, ℎ𝑐 ].𝑝𝑢𝑠ℎ(𝑡), 𝑃𝑃𝑅[𝑡, ℎ𝑐 ].𝑝𝑢𝑠ℎ(𝑥 )
 				{
+					/*
 					auto query_result2 = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, x, t);
 
 					PPR_insert(*PPR, x, query_result2.second, t);
 					PPR_insert(*PPR, t, query_result2.second, x);
+*/
 
-					/*
 					auto query_result2 = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, x, t);
 					if (query_result2.second != t)
 					{
@@ -93,7 +99,6 @@ void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 						PPR_insert(*PPR, t, query_result2.second, x);
 						mtx_5952[t].unlock();
 					}
-					*/
 				}
 			}
 			else if (t > x)
@@ -115,16 +120,19 @@ void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 				// if 𝑄𝑢𝑒𝑟𝑦(𝑥, 𝑡, 𝐿) > 𝑑1(𝑥, 𝑡) then 𝐴𝐿3.𝑝𝑢𝑠ℎ( (𝑥, 𝑡, 𝑑1(𝑥, 𝑡) ) )
 				if (graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L, t, x) > d1t_x)
 				{
+					mtx_595_1.lock();
 					al3.push_back(affected_label(t, x, d1t_x));
+					mtx_595_1.unlock();
 				}
 				else // else 𝑃𝑃𝑅[𝑥, ℎ𝑐 ].𝑝𝑢𝑠ℎ(𝑡), 𝑃𝑃𝑅[𝑡, ℎ𝑐 ].𝑝𝑢𝑠ℎ(𝑥 )
 				{
+					/*
 					auto query_result2 = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, t, x);
 
 					PPR_insert(*PPR, t, query_result2.second, x);
 					PPR_insert(*PPR, x, query_result2.second, t);
 
-					/*
+					*/
 					auto query_result2 = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, t, x);
 					if (query_result2.second != x)
 					{
@@ -138,7 +146,6 @@ void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 						PPR_insert(*PPR, x, query_result2.second, t);
 						mtx_5952[x].unlock();
 					}
-					*/
 				}
 			}
 		}
@@ -273,14 +280,18 @@ void WeightIncreaseMaintenance_improv(graph_v_of_v_idealID &instance_graph, grap
 	{
 		if (it.vertex <= v2 && abs(search_sorted_two_hop_label(mm.L[v2], it.vertex) - it.distance - w_old) < 1e-5)
 		{
+			mtx_595_1.lock();
 			al1.push_back(affected_label(v2, it.vertex, it.distance + w_old));
+			mtx_595_1.unlock();
 		}
 	}
 	for (auto it : mm.L[v2])
 	{
 		if (it.vertex <= v1 && abs(search_sorted_two_hop_label(mm.L[v1], it.vertex) - it.distance - w_old) < 1e-5)
 		{
+			mtx_595_1.lock();
 			al1.push_back(affected_label(v1, it.vertex, it.distance + w_old));
+			mtx_595_1.unlock();
 		}
 	}
 
