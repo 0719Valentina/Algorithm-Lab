@@ -8,6 +8,41 @@ void SPREAD1(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 	std::vector<affected_label>& al1, std::vector<pair_label>* al2, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
 
 	/*TO DO 2*/
+	for (auto it : al1)
+	{
+		std::queue<std::pair<int, weightTYPE>> Q;
+		Q.push(std::make_pair(it->first, it->dis));
+		int v = it->second;
+		while (!Q.empty())
+		{
+			std::pair<int, weightTYPE> temp = Q.front();
+			Q.pop();
+			int x = temp.first;
+			weightTYPE dx = temp.second;
+			L[x][v].distance = MAX_VALUE;
+			al2.push_back(pair_label(x, v));
+			// 遍历x的邻接点
+			int x_adj_size = ideal_graph_595[x].size();
+			for (int i = 0; i < x_adj_size; i++)
+			{
+				int xn = ideal_graph_595[x][i].first;
+				weightTYPE ec = ideal_graph_595[x][i].second;
+				// r(v)>=r(xn)
+				if (v <= xn)
+				{
+					// if (𝑣, 𝑑𝑥 + 𝑤(𝑥, 𝑥𝑛 ) ) ∈ 𝐿(𝑥𝑛 ) then 𝑄𝑢𝑒𝑢𝑒.𝑝𝑢𝑠ℎ( (𝑥𝑛, 𝑑𝑥 + 𝑤(𝑥, 𝑥𝑛 ) ) )
+					auto search_result = search_sorted_two_hop_label((*L)[xn], v);
+					if (search_result == dx + ec)
+						Q.push(std::make_pair(xn, dx + ec));
+				}
+			}
+		}
+	}
+}
+
+void SPREAD2(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR,
+	std::vector<pair_label>& al2, std::vector<affected_label>* al3, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
+
 	for (auto it : al2)
 	{
 		int x = it.first;
@@ -108,31 +143,6 @@ void SPREAD1(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 			}
 		}
 		
-	}
-}
-
-void SPREAD2(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR,
-	std::vector<pair_label>& al2, std::vector<affected_label>* al3, ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) {
-
-	for (auto& pair : al2) {
-		int u1 = pair.first;
-		int u2 = pair.second;
-		weightTYPE w = pair.dis;
-
-		// 查找u1和u2的邻居节点
-		vector<int> neighbors_u1 = instance_graph[u1];
-		vector<int> neighbors_u2 = instance_graph[u2];
-
-		// 遍历u1和u2的邻居节点
-		for (int v1 : neighbors_u1) {
-			for (int v2 : neighbors_u2) {
-				// 计算新生成标签的距离
-				weightTYPE new_dis = w + instance_graph.get_weight(u1, v1) + instance_graph.get_weight(u2, v2);
-
-				// 添加新标签到al3中
-				al3->push_back(affected_label(v1, v2, new_dis));
-			}
-		}
 	}
 }
 
