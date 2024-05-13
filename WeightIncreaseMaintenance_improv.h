@@ -46,13 +46,18 @@ void SPREAD1(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v1>> *L, PPR_type *PPR,
 			 std::vector<pair_label> &al2, std::vector<affected_label> *al3, ThreadPool &pool_dynamic, std::vector<std::future<int>> &results_dynamic)
 {
-
 	for (auto it : al2)
 	{
 		int x = it.first;
 		int y = it.second;
 		// weightTYPE w = it.dis;
-		for (auto t : (PPR[x][y] || y)) // If 𝑡 ∈ 𝑃𝑃𝑅[𝑥, 𝑦] ∪ 𝑦
+		std::vector<int> unionSet;
+		std::vector<int> B = {y};
+
+		std::set_union(PPR[x][y].begin(), PPR[x][y].end(), B.begin(),B.end(), std::back_inserter(unionSet));
+		//int t=y;
+		//for (auto t : PPR[x][y]) // If 𝑡 ∈ 𝑃𝑃𝑅[𝑥, 𝑦] ∪ 𝑦
+		for (auto t : unionSet)
 		{
 			// if 𝑟 (𝑡) > 𝑟 (𝑥 )
 			if (t < x)
@@ -74,7 +79,7 @@ void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 				if (graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L, x, t) > d1x_t)
 				{
 					mtx_595_1.lock();
-					al3.push_back(affected_label(x, t, d1x_t));
+					(*al3).push_back(affected_label(x, t, d1x_t));
 					mtx_595_1.unlock();
 				}
 				else // else 𝑃𝑃𝑅[𝑥, ℎ𝑐 ].𝑝𝑢𝑠ℎ(𝑡), 𝑃𝑃𝑅[𝑡, ℎ𝑐 ].𝑝𝑢𝑠ℎ(𝑥 )
@@ -121,7 +126,7 @@ void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 				if (graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L, t, x) > d1t_x)
 				{
 					mtx_595_1.lock();
-					al3.push_back(affected_label(t, x, d1t_x));
+					(*al3).push_back(affected_label(t, x, d1t_x));
 					mtx_595_1.unlock();
 				}
 				else // else 𝑃𝑃𝑅[𝑥, ℎ𝑐 ].𝑝𝑢𝑠ℎ(𝑡), 𝑃𝑃𝑅[𝑡, ℎ𝑐 ].𝑝𝑢𝑠ℎ(𝑥 )
@@ -150,6 +155,7 @@ void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 			}
 		}
 	}
+	
 }
 
 void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v1>> *L, PPR_type *PPR, std::vector<affected_label> &al3,
