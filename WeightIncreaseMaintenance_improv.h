@@ -51,13 +51,10 @@ void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 		int x = it.first;
 		int y = it.second;
 		// weightTYPE w = it.dis;
-		std::vector<int> unionSet;
-		std::vector<int> B = {y};
-
-		std::set_union(PPR[x][y].begin(), PPR[x][y].end(), B.begin(),B.end(), std::back_inserter(unionSet));
-		//int t=y;
+		std::vector<int> retrievedValues = PPR_retrieve(*PPR, x, y);
+		retrievedValues.push_back(y);
 		//for (auto t : PPR[x][y]) // If 𝑡 ∈ 𝑃𝑃𝑅[𝑥, 𝑦] ∪ 𝑦
-		for (auto t : unionSet)
+		for (auto t : retrievedValues)
 		{
 			// if 𝑟 (𝑡) > 𝑟 (𝑥 )
 			double  d1x_t = MAX_VALUE;
@@ -160,6 +157,7 @@ void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 	
 	
 }
+
 
 void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v1>> *L, PPR_type *PPR, std::vector<affected_label> &al3,
 			 ThreadPool &pool_dynamic, std::vector<std::future<int>> &results_dynamic)
