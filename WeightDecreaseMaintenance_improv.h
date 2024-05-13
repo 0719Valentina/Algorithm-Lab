@@ -105,13 +105,22 @@ void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 					{
 						auto result = search_sorted_two_hop_label2((*L)[xn], v);
 						auto it2 = Q.find(xn);
-						weightTYPE Qxn=it2->second;
+
+						int find=0;
+						int Qxn=MAX_VALUE;
+						if(it2!=Q.end())
+						{	
+							weightTYPE Qxn=it2->second;
+							find=1;
+			
+						}
 						int min=(Qxn>result.first)?result.first:Qxn;
-						
+							
+		
         				if (result.second != MAX_VALUE && min>dnew)
 					{
-						if(it2 != Q.end()) it2->second=dnew;
-						else Q.emplace(dnew, xn);
+						if(find){it2->second=dnew;}
+						else{ Q.emplace(dnew, xn);}
 					}
 
 						auto query_result2 = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, v, xn);
