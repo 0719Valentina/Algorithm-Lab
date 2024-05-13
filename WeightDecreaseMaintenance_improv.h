@@ -86,7 +86,7 @@ void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 				weightTYPE w=neighbor.second;
 				if(v<xn)
 				{
-					if(Dis[xn]==-1) Dis[xn]=graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L,xn,v);
+					if(Dis[xn]==-1.0) Dis[xn]=graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L,xn,v);
 					weightTYPE dnew=dx+w;
 					double Qxn=MAX_VALUE;
 					std::priority_queue<std::pair<weightTYPE,int>>temp;
