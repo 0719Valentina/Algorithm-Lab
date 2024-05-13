@@ -63,12 +63,12 @@ void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 			if (t < x)
 			{
 				// 在xn中循环找到最小值
-				weightTYPE d1x_t = MAX_VALUE;				   // 初始化无穷大
+				double  d1x_t = MAX_VALUE;				   // 初始化无穷大
 				for (const auto &neighbor : instance_graph[x]) // for (int i = 0; i < x_adj_size; i++)
 				{
 					int xn = neighbor.first;
 					auto search_result = search_sorted_two_hop_label((*L)[xn], t);
-					weightTYPE ec = neighbor.second;
+					double ec = neighbor.second;
 					if (d1x_t > ec + search_result)
 					{
 						d1x_t = ec + search_result;
@@ -109,13 +109,13 @@ void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 			else if (t > x)
 			{
 				// 在xn中循环找到最小值
-				weightTYPE d1t_x = MAX_VALUE; // 初始化无穷大
+				double d1t_x = MAX_VALUE; // 初始化无穷大
 				// int t_adj_size = ideal_graph_595[t].size();
 				for (const auto &neighbor : instance_graph[x]) // for (int i = 0; i < x_adj_size; i++)
 				{
 					int tn = neighbor.first;
 					auto search_result = search_sorted_two_hop_label((*L)[tn], x);
-					weightTYPE ec = neighbor.second;
+					double ec = neighbor.second;
 					if (d1t_x > ec + search_result)
 					{
 						d1t_x = ec + search_result;
@@ -155,6 +155,7 @@ void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 			}
 		}
 	}
+	
 	
 }
 
