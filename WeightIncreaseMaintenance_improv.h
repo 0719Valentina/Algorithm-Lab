@@ -11,17 +11,17 @@ void SPREAD1(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 	for (auto it : al1)
 	{
 		std::queue<std::pair<int, weightTYPE>> Q;
-		Q.push(std::make_pair(it->first, it->dis));
-		int v = it->second;
+		Q.push(std::make_pair(it.first, it.dis));
+		int v = it.second;
 		while (!Q.empty())
 		{
 			std::pair<int, weightTYPE> temp = Q.front();
 			Q.pop();
 			int x = temp.first;
 			weightTYPE dx = temp.second;
-			L[x][v].distance = MAX_VALUE;
+			(*L)[x][v].distance = MAX_VALUE;
 			mtx_595_1.lock();
-			al2.push_back(pair_label(x, v));
+			(*al2).push_back(pair_label(x, v));
 			mtx_595_1.unlock();
 
 			// 遍历x的邻接点
