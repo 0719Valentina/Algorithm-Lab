@@ -60,10 +60,12 @@ void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 		for (auto t : unionSet)
 		{
 			// if 𝑟 (𝑡) > 𝑟 (𝑥 )
+			double  d1x_t = MAX_VALUE;
+			double d1t_x = MAX_VALUE;
 			if (t < x)
 			{
 				// 在xn中循环找到最小值
-				double  d1x_t = MAX_VALUE;				   // 初始化无穷大
+						   // 初始化无穷大
 				for (const auto &neighbor : instance_graph[x]) // for (int i = 0; i < x_adj_size; i++)
 				{
 					int xn = neighbor.first;
@@ -109,7 +111,7 @@ void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 			else if (t > x)
 			{
 				// 在xn中循环找到最小值
-				double d1t_x = MAX_VALUE; // 初始化无穷大
+				 // 初始化无穷大
 				// int t_adj_size = ideal_graph_595[t].size();
 				for (const auto &neighbor : instance_graph[x]) // for (int i = 0; i < x_adj_size; i++)
 				{
