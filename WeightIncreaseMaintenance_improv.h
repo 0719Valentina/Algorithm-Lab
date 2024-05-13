@@ -165,9 +165,9 @@ void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 	/*TO DO 4*/
 	for (auto it : al3)
 	{
-		int u = it->first;
-		int v = it->second;
-		weightTYPE du = it->dis;
+		int u = it.first;
+		int v = it.second;
+		weightTYPE du = it.dis;
 
 		auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, u, v);
 
@@ -202,6 +202,7 @@ void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 		}
 
 		// 初始化Q 斐波那契堆 最小堆
+		//std::queue<PLL_dynamic_node_for_sp> Q;
 		boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp> Q;
 		PLL_dynamic_node_for_sp node;
 		node.vertex = u;
@@ -209,7 +210,7 @@ void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 
 		Q.push(node);
 
-		while (Q.size() > 0)
+		while (!Q.empty())
 		{
 			node = Q.top();
 			Q.pop();
@@ -218,8 +219,8 @@ void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 			weightTYPE dx = node.priority_value;
 
 			// 取Min值
-			if (dx < L[x][v].distance)
-				L[x][v].distance = dx;
+			if (dx < (*L)[x][v].distance)
+				(*L)[x][v].distance = dx;
 
 			// 遍历x的邻接点
 			// int x_adj_size = ideal_graph_595[x].size();
@@ -237,12 +238,19 @@ void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 					{
 						DIS[xn] = dx + ec;
 						// update 查看Q中是否有xn
-						auto it = std::find_if(Q.begin(), Q.end(), [xn](const PLL_dynamic_node_for_sp &node)
-											   { return node.vertex == xn; });
-						if (it != Q.end())
+						PLL_dynamic_node_for_sp* check;
+						bool hasFind = false;
+						for (auto n : Q) {
+							if (n.vertex == xn) {
+								check = &n;
+								hasFind = true;
+								break;
+							}
+						}
+
+						if (hasFind)
 						{
-							it->priority_value = DIS[xn];
-							Q.update(it);
+							check->priority_value = DIS[xn];
 						}
 						else
 						{
