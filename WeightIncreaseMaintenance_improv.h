@@ -232,7 +232,7 @@ void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 				// r(v)>=r(xn)
 				if (v <= xn)
 				{
-					if (DIS[xn] == -1)
+					if ((-1e-5 < (DIS[xn] + 1) && (DIS[xn] + 1) < 1e-5))
 						DIS[xn] = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L, xn, v); // query_result is {distance, common hub};
 
 					if (DIS[xn] > dx + ec)
