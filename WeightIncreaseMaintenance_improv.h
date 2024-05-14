@@ -19,7 +19,23 @@ void SPREAD1(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 			Q.pop();
 			int x = temp.first;
 			weightTYPE dx = temp.second;
-			(*L)[x][v].distance = MAX_VALUE;
+			//(*L)[x][v].distance = MAX_VALUE;
+			int find = 0;
+			for (auto& label : L->at(x))
+			{
+				if (label.vertex == v) {
+					label.distance = MAX_VALUE;
+					find = 1;
+					break;
+				}
+			}
+			if (!find) {
+				two_hop_label_v1 new_label;
+				new_label.vertex = v;
+				new_label.distance = MAX_VALUE;
+				L->at(x).push_back(new_label);
+			}
+			
 			mtx_595_1.lock();
 			(*al2).push_back(pair_label(x, v));
 			mtx_595_1.unlock();
