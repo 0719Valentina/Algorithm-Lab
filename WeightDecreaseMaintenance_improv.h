@@ -104,33 +104,41 @@ void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 					double dnew = dx + w;
 					double Qxn = MAX_VALUE;
 					std::priority_queue<std::pair<double, int>>temp;
+
 					//将xn从Q中删除
 					while (!Q.empty())
 					{
-
-						if (Q.top().second != v)
+						if (!Q.empty())
 						{
-							temp.emplace(Q.top());
+							std::pair<double, int> top = Q.top();
+							if (top.second != v)
+							{
+								temp.emplace(top);
+							}
+							else
+							{
+								Qxn = top.first;
+							}
+							Q.pop();
 						}
 						else
 						{
-							Qxn = Q.top().first;
+							// Q 为空,退出循环
+							break;
 						}
-						Q.pop();
 					}
 
-					while (!temp.empty())
-					{
-						Q.emplace(temp.top());
-						temp.pop();
-					}
+
+					Q = std::move(temp);
+
 
 					if (Dis[xn] > dnew)
 					{
 						Dis[xn] = dnew;
 						Q.emplace(Dis[xn], xn);
-
 					}
+
+
 					else
 					{
 						auto result = search_sorted_two_hop_label2((*L)[xn], v);
