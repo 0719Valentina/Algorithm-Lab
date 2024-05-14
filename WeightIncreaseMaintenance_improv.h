@@ -192,7 +192,7 @@ void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 		}
 
 		// 初始化dis数组
-		std::vector<weightType> DIS;
+		std::vector<double> DIS;
 		int v_size = instance_graph.size();
 		for (int i = 0; i < v_size; i++)
 		{
@@ -239,7 +239,7 @@ void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 					{
 						DIS[xn] = dx + ec;
 						// update 查看Q中是否有xn
-						PLL_dynamic_node_for_sp* check;
+						PLL_dynamic_node_for_sp* check=nullptr;
 						bool hasFind = false;
 						for (auto n : Q) {
 							if (n.vertex == xn) {
