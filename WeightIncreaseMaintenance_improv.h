@@ -192,14 +192,14 @@ void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 		}
 
 		// 初始化dis数组
-		std::vector<int> DIS;
+		std::vector<weightType> DIS;
 		int v_size = instance_graph.size();
 		for (int i = 0; i < v_size; i++)
 		{
 			if (i == u)
-				DIS[i] = du;
+				DIS.push_back(du);
 			else
-				DIS[i] = -1;
+				DIS.push_back(-1.0);
 		}
 
 		// 初始化Q 斐波那契堆 最小堆
