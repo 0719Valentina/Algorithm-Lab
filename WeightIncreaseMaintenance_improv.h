@@ -6,16 +6,16 @@
 void SPREAD1(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v1>> *L,
 			 std::vector<affected_label> &al1, std::vector<pair_label> *al2, ThreadPool &pool_dynamic, std::vector<std::future<int>> &results_dynamic)
 {
-
+	boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp> Q;
 	/*TO DO 2*/
 	for (auto it : al1)
 	{
-		boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp> Q;
 		PLL_dynamic_node_for_sp node;
 		node.vertex = it.first;
 		node.priority_value = it.dis;
 		Q.push(node);
 		int v = it.second;
+		//printf("al1:x%d v%d\n",it.first,v);
 		while (!Q.empty())
 		{
 			PLL_dynamic_node_for_sp temp = Q.top();
@@ -29,6 +29,7 @@ void SPREAD1(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 			mtx_595_1.lock();
 			(*al2).push_back(pair_label(x, v));
 			mtx_595_1.unlock();
+			//printf("al2:x:%d v:%d\n",x,v);
 
 			// 遍历x的邻接点
 			// int x_adj_size = ideal_graph_595[x].size();
@@ -37,10 +38,13 @@ void SPREAD1(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 				int xn = neighbor.first;
 				weightTYPE ec = neighbor.second;
 				// r(v)>r(xn)
+				//printf("check al1 neigh:%d\n",xn);
 				if (v < xn)
 				{
 					// if (𝑣, 𝑑𝑥 + 𝑤(𝑥, 𝑥𝑛 ) ) ∈ 𝐿(𝑥𝑛 ) then 𝑄𝑢𝑒𝑢𝑒.𝑝𝑢𝑠ℎ( (𝑥𝑛, 𝑑𝑥 + 𝑤(𝑥, 𝑥𝑛 ) ) )
+					/*7==*/
 					auto search_result = search_sorted_two_hop_label((*L)[xn], v);
+					//printf("check al1 neigh:%d dx:%f ec:%f lxn:%f\n",xn,dx,ec,search_result);
 					if (abs(search_result-dx-ec) < 1e-5){
 						temp.vertex=xn;
 						temp.priority_value=dx+ec;
@@ -50,6 +54,8 @@ void SPREAD1(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 			}
 		}
 	}
+	for (auto&& result : results_dynamic){result.get();}
+	std::vector<std::future<int>>().swap(results_dynamic);
 }
 
 void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v1>> *L, PPR_type *PPR,
@@ -59,6 +65,7 @@ void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 	{
 		int x = it.first;
 		int y = it.second;
+		//printf("al2 x:%d,y:%d\n",x,y);
 		// weightTYPE w = it.dis;
 		//PPR_insert(*PPR, x, y, y);
 		std::vector<int> retrievedValues = PPR_retrieve(*PPR, x, y);
@@ -163,8 +170,8 @@ void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 			}
 		}
 	}
-	
-	
+	for (auto&& result : results_dynamic){result.get();}
+	std::vector<std::future<int>>().swap(results_dynamic);
 }
 
 
@@ -178,12 +185,12 @@ void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 		int u = it.first;
 		int v = it.second;
 		weightTYPE du = it.dis;
-
+		//printf("al3 u:%d v:%d du:%f\n",u,v,du);
 		auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, u, v);
 
 		// 求query的值
 
-		if (query_result.first <= du)
+		if (query_result.first < du || abs(query_result.first-du)<1e-5)
 		{
 			if (query_result.second != v)
 			{
@@ -220,10 +227,11 @@ void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 			weightTYPE dx = node.priority_value;
 
 			// 取Min值
-			weightTYPE min=dx < (*L)[x][v].distance?dx:(*L)[x][v].distance;
+			auto search_result2 = search_sorted_two_hop_label((*L)[x], v);
+			weightTYPE min=dx < search_result2?dx:search_result2;
 			vector<two_hop_label_v1>& L_x = (*L)[x];
 			insert_sorted_two_hop_label(L_x, v, min);
-			
+			//printf("after update:x:%d v%d du:%f\n",x,v,min);
 				//(*L)[x][v].distance = dx;
 			// 遍历x的邻接点
 			// int x_adj_size = ideal_graph_595[x].size();
@@ -280,6 +288,8 @@ void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 			}
 		}
 	}
+	for (auto&& result : results_dynamic){result.get();}
+	std::vector<std::future<int>>().swap(results_dynamic);
 }
 
 void WeightIncreaseMaintenance_improv(graph_v_of_v_idealID &instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1 &mm, int v1, int v2, weightTYPE w_old, weightTYPE w_new,
