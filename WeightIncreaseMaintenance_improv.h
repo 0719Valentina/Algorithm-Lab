@@ -10,32 +10,22 @@ void SPREAD1(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 	/*TO DO 2*/
 	for (auto it : al1)
 	{
-		std::queue<std::pair<int, weightTYPE>> Q;
-		Q.push(std::make_pair(it.first, it.dis));
+		boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp> Q;
+		PLL_dynamic_node_for_sp node;
+		node.vertex = it.first;
+		node.priority_value = it.dis;
+		Q.push(node);
 		int v = it.second;
 		while (!Q.empty())
 		{
-			std::pair<int, weightTYPE> temp = Q.front();
+			PLL_dynamic_node_for_sp temp = Q.top();
 			Q.pop();
-			int x = temp.first;
-			weightTYPE dx = temp.second;
+			int x = temp.vertex;
+			weightTYPE dx = temp.priority_value;
 			//(*L)[x][v].distance = MAX_VALUE;
-			int find = 0;
-			for (auto& label : L->at(x))
-			{
-				if (label.vertex == v) {
-					label.distance = MAX_VALUE;
-					find = 1;
-					break;
-				}
-			}
-			if (!find) {
-				two_hop_label_v1 new_label;
-				new_label.vertex = v;
-				new_label.distance = MAX_VALUE;
-				L->at(x).push_back(new_label);
-			}
-			
+			vector<two_hop_label_v1>& L_x = (*L)[x];
+			insert_sorted_two_hop_label(L_x, v, MAX_VALUE);
+
 			mtx_595_1.lock();
 			(*al2).push_back(pair_label(x, v));
 			mtx_595_1.unlock();
@@ -51,8 +41,11 @@ void SPREAD1(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 				{
 					// if (𝑣, 𝑑𝑥 + 𝑤(𝑥, 𝑥𝑛 ) ) ∈ 𝐿(𝑥𝑛 ) then 𝑄𝑢𝑒𝑢𝑒.𝑝𝑢𝑠ℎ( (𝑥𝑛, 𝑑𝑥 + 𝑤(𝑥, 𝑥𝑛 ) ) )
 					auto search_result = search_sorted_two_hop_label((*L)[xn], v);
-					if (abs(search_result-dx-ec) < 1e-5)
-						Q.push(std::make_pair(xn, dx + ec));
+					if (abs(search_result-dx-ec) < 1e-5){
+						temp.vertex=xn;
+						temp.priority_value=dx+ec;
+						Q.push(temp);
+					}
 				}
 			}
 		}
@@ -178,7 +171,7 @@ void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v1>> *L, PPR_type *PPR, std::vector<affected_label> &al3,
 			 ThreadPool &pool_dynamic, std::vector<std::future<int>> &results_dynamic)
 {
-
+	boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp> Q;
 	/*TO DO 4*/
 	for (auto it : al3)
 	{
@@ -208,19 +201,10 @@ void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 		}
 
 		// 初始化dis数组
-		std::vector<double> DIS;
-		int v_size = instance_graph.size();
-		for (int i = 0; i < v_size; i++)
-		{
-			if (i == u)
-				DIS.push_back(du);
-			else
-				DIS.push_back(-1.0);
-		}
+		std::vector<double>DIS(instance_graph.size(), -1.0);
+		DIS[u] = du;
 
 		// 初始化Q 斐波那契堆 最小堆
-		//std::queue<PLL_dynamic_node_for_sp> Q;
-		boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp> Q;
 		PLL_dynamic_node_for_sp node;
 		node.vertex = u;
 		node.priority_value = du;
@@ -238,7 +222,6 @@ void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 			// 取Min值
 			if (dx < (*L)[x][v].distance)
 				(*L)[x][v].distance = dx;
-
 			// 遍历x的邻接点
 			// int x_adj_size = ideal_graph_595[x].size();
 			for (const auto &neighbor : instance_graph[x]) // for (int i = 0; i < x_adj_size; i++)
@@ -248,33 +231,29 @@ void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 				// r(v)>=r(xn)
 				if (v <= xn)
 				{
-					if ((-1e-5 < (DIS[xn] + 1) && (DIS[xn] + 1) < 1e-5))
+					if (abs(DIS[xn] + 1)<1e-5)
 						DIS[xn] = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L, xn, v); // query_result is {distance, common hub};
 
 					if (DIS[xn] > dx + ec)
 					{
-						DIS[xn] = dx + ec;
-						// update 查看Q中是否有xn
-						PLL_dynamic_node_for_sp* check=nullptr;
-						bool hasFind = false;
-						for (auto n : Q) {
-							if (n.vertex == xn) {
-								check = &n;
-								hasFind = true;
-								break;
-							}
+						bool check=false;
+						for(boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp>::iterator it = Q.begin(); it != Q.end(); ++it){
+							 if (it->vertex == xn) {
+            					// 更新节点的优先级值
+								boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp>::handle_type handle = 
+								Q.s_handle_from_iterator(it);
+								(*handle).priority_value=DIS[xn];
+            					// 调整 Fibonacci 堆以维持堆的性质
+            					Q.update(handle);
+								check=true;
+            					break;
+        					}
 						}
-
-						if (hasFind)
-						{
-							check->priority_value = DIS[xn];
-						}
-						else
-						{
-							PLL_dynamic_node_for_sp new_node;
-							new_node.vertex = xn;
-							new_node.priority_value = DIS[xn];
-							Q.push(new_node);
+						if(!check){
+							PLL_dynamic_node_for_sp temp;
+							temp.vertex = xn;
+							temp.priority_value = DIS[xn];
+							Q.push(temp);
 						}
 					}
 					else
