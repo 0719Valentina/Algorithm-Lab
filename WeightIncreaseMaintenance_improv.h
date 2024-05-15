@@ -60,9 +60,9 @@ void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 		int x = it.first;
 		int y = it.second;
 		// weightTYPE w = it.dis;
+		//PPR_insert(*PPR, x, y, y);
 		std::vector<int> retrievedValues = PPR_retrieve(*PPR, x, y);
 		retrievedValues.push_back(y);
-		//for (auto t : PPR[x][y]) // If 𝑡 ∈ 𝑃𝑃𝑅[𝑥, 𝑦] ∪ 𝑦
 		for (auto t : retrievedValues)
 		{
 			// if 𝑟 (𝑡) > 𝑟 (𝑥 )
@@ -119,7 +119,7 @@ void SPREAD2(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 				// 在xn中循环找到最小值
 				 // 初始化无穷大
 				// int t_adj_size = ideal_graph_595[t].size();
-				for (const auto &neighbor : instance_graph[x]) // for (int i = 0; i < x_adj_size; i++)
+				for (const auto &neighbor : instance_graph[t]) // for (int i = 0; i < x_adj_size; i++)
 				{
 					int tn = neighbor.first;
 					auto search_result = search_sorted_two_hop_label((*L)[tn], x);
@@ -220,22 +220,26 @@ void SPREAD3(graph_v_of_v_idealID &instance_graph, vector<vector<two_hop_label_v
 			weightTYPE dx = node.priority_value;
 
 			// 取Min值
-			if (dx < (*L)[x][v].distance)
-				(*L)[x][v].distance = dx;
+			weightTYPE min=dx < (*L)[x][v].distance?dx:(*L)[x][v].distance;
+			vector<two_hop_label_v1>& L_x = (*L)[x];
+			insert_sorted_two_hop_label(L_x, v, min);
+			
+				//(*L)[x][v].distance = dx;
 			// 遍历x的邻接点
 			// int x_adj_size = ideal_graph_595[x].size();
 			for (const auto &neighbor : instance_graph[x]) // for (int i = 0; i < x_adj_size; i++)
 			{
 				int xn = neighbor.first;
 				weightTYPE ec = neighbor.second;
-				// r(v)>=r(xn)
-				if (v <= xn)
+				// r(v)>r(xn)
+				if (v < xn)
 				{
 					if (abs(DIS[xn] + 1)<1e-5)
 						DIS[xn] = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L, xn, v); // query_result is {distance, common hub};
 
 					if (DIS[xn] > dx + ec)
 					{
+						DIS[xn]=dx+ec;
 						bool check=false;
 						for(boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp>::iterator it = Q.begin(); it != Q.end(); ++it){
 							 if (it->vertex == xn) {
