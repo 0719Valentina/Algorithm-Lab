@@ -10,14 +10,14 @@ void WeightDecreaseMaintenance_improv_step1(int v1, int v2, weightTYPE w_new, ve
 		if (sl == 1) {
 			swap(v1, v2);
 		}
-		//第一次遍历L(a) 第二次遍历L(b)
+		//绗竴娆￠亶鍘哃(a) 绗簩娆￠亶鍘哃(b)
 		for (auto it : (*L)[v1]) {
-			//即r(v)>=r(b) 从小到大排序
+			//鍗硆(v)>=r(b) 浠庡皬鍒板ぇ鎺掑簭
 			if (it.vertex <= v2) {
 				results_dynamic.emplace_back(pool_dynamic.enqueue([it, v2, L, PPR, w_new, CL]
 				{
 					
-					//计算Query距离
+					//璁＄畻Query璺濈
 					auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, it.vertex, v2); // query_result is {distance, common hub}
 					if (query_result.first > it.distance + w_new) {
 						mtx_595_1.lock();
@@ -66,34 +66,21 @@ void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 		double du = cl.dis;
 		std::vector<double>Dis(instance_graph.size(), -1.0);
 		Dis[u] = du;
-		std::priority_queue<std::pair<double, int>>Q;
-		Q.emplace(du, u);
+		boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp> Q;
+		PLL_dynamic_node_for_sp node;
+		node.vertex = u;
+		node.priority_value = du;
+		Q.push(node);
 
-		//处理
 		while (!Q.empty())
 		{
-			double dx = Q.top().first;
-			int x = Q.top().second;
+
+			node = Q.top();
 			Q.pop();
-			
-			
-			int find = 0;
-			for (auto& label : L->at(x))
-			{
-				if (label.vertex == v) {
-					label.distance = dx;
-					find = 1;
-					break;
-				}
-			}
-			if (!find) {
-				two_hop_label_v1 new_label;
-				new_label.vertex = v;
-				new_label.distance = dx;
-				L->at(x).push_back(new_label);
-			}
-
-
+			int x = node.vertex;
+			weightTYPE dx = node.priority_value;
+			vector<two_hop_label_v1>& L_x = (*L)[x];
+			insert_sorted_two_hop_label(L_x, v, dx);
 			for (const auto& neighbor : instance_graph[x])
 			{
 				int xn = neighbor.first;
@@ -101,67 +88,77 @@ void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 				if (v < xn)
 				{
 					if (Dis[xn] == -1.0) Dis[xn] = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L, xn, v);
+
 					double dnew = dx + w;
 					double Qxn = MAX_VALUE;
-					std::priority_queue<std::pair<double, int>>temp;
-
-					//将xn从Q中删除
-					while (!Q.empty())
+					PLL_dynamic_node_for_sp* check=nullptr;
+					bool hasFind = false;
+					for (auto n : Q)
 					{
-						if (!Q.empty())
+						if (n.vertex == xn)
 						{
-							std::pair<double, int> top = Q.top();
-							if (top.second != v)
-							{
-								temp.emplace(top);
-							}
-							else
-							{
-								Qxn = top.first;
-							}
-							Q.pop();
-						}
-						else
-						{
-							// Q 为空,退出循环
-							break;
+								check = &n;
+								hasFind = true;
+								break;
 						}
 					}
 
+						if(Dis[xn] > dnew)
+						{
+							Dis[xn] = dnew;
+							if (hasFind)
+							{
+								check->priority_value = Dis[xn];
+							}else
+							{
+								PLL_dynamic_node_for_sp new_node;
+								new_node.vertex = xn;
+								new_node.priority_value = Dis[xn];
+								Q.push(new_node);
+							}
+						}else
+						{
+							auto result = search_sorted_two_hop_label2((*L)[xn], v);
+							if(hasFind)
+							{
+								Qxn=check->priority_value;
+							}
+							int min = (Qxn > result.first) ? result.first : Qxn;
 
-					Q = std::move(temp);
+							if (result.second != MAX_VALUE&& min > dnew)
+							{
+								if(hasFind)
+								{
+									check->priority_value = dnew;
+								}
+								else
+								{
+									PLL_dynamic_node_for_sp new_node;
+									new_node.vertex = xn;
+									new_node.priority_value = dnew;
+									Q.push(new_node);
+								}
+							}
+							
+							auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, v, xn);
+							if (query_result.second != x) {
+								mtx_5952[xn].lock();
+								PPR_insert(*PPR, xn, query_result.second, x);
+								mtx_5952[xn].unlock();
+							}
+							if (query_result.second != xn) {
+								mtx_5952[x].lock();
+								PPR_insert(*PPR, x, query_result.second, xn);
+								mtx_5952[x].unlock();
+							}
 
-
-					if (Dis[xn] > dnew)
-					{
-						Dis[xn] = dnew;
-						Q.emplace(Dis[xn], xn);
-					}
-
-
-					else
-					{
-						auto result = search_sorted_two_hop_label2((*L)[xn], v);
-						int min = (Qxn > result.first) ? result.first : Qxn;
-						if (result.second != MAX_VALUE && min > dnew) Q.emplace(dnew, xn);
-						auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, v, xn);
-						if (query_result.second != x) {
-							mtx_5952[xn].lock();
-							PPR_insert(*PPR, xn, query_result.second, x);
-							mtx_5952[xn].unlock();
 						}
-						if (query_result.second != xn) {
-							mtx_5952[x].lock();
-							PPR_insert(*PPR, x, query_result.second, xn);
-							mtx_5952[x].unlock();
-						}
-
 				}
+
+				
 			}
 
 		}
-
-	}
 
 	}
 	for (auto&& result : results_dynamic){result.get();}
