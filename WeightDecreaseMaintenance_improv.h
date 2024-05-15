@@ -1,6 +1,7 @@
 #pragma once
 
 #include <build_in_progress/HL/dynamic/PLL_dynamic.h>
+#include <map>
 
 void WeightDecreaseMaintenance_improv_step1(int v1, int v2, weightTYPE w_new, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR, std::vector<affected_label>* CL,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) 
@@ -10,14 +11,14 @@ void WeightDecreaseMaintenance_improv_step1(int v1, int v2, weightTYPE w_new, ve
 		if (sl == 1) {
 			swap(v1, v2);
 		}
-		//绗竴娆￠亶鍘哃(a) 绗簩娆￠亶鍘哃(b)
+		//第一次遍历L(a) 第二次遍历L(b)
 		for (auto it : (*L)[v1]) {
-			//鍗硆(v)>=r(b) 浠庡皬鍒板ぇ鎺掑簭
+			//即r(v)>=r(b) 从小到大排序
 			if (it.vertex <= v2) {
 				results_dynamic.emplace_back(pool_dynamic.enqueue([it, v2, L, PPR, w_new, CL]
 				{
 					
-					//璁＄畻Query璺濈
+					//计算Query距离
 					auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, it.vertex, v2); // query_result is {distance, common hub}
 					if (query_result.first > it.distance + w_new) {
 						mtx_595_1.lock();
@@ -59,26 +60,31 @@ void WeightDecreaseMaintenance_improv_step1(int v1, int v2, weightTYPE w_new, ve
 void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR, std::vector<affected_label>& CL,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic)
 {
+	boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp> Q;
 	for (auto& cl : CL)
 	{
 		int u = cl.first;
 		int v = cl.second;
 		double du = cl.dis;
+		
 		std::vector<double>Dis(instance_graph.size(), -1.0);
 		Dis[u] = du;
-		boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp> Q;
+		/*u->du*/
 		PLL_dynamic_node_for_sp node;
 		node.vertex = u;
 		node.priority_value = du;
+
 		Q.push(node);
 
+		//处理
 		while (!Q.empty())
 		{
-
-			node = Q.top();
-			Q.pop();
+			
+			node=Q.top();
 			int x = node.vertex;
-			weightTYPE dx = node.priority_value;
+			double dx = node.priority_value;
+			Q.pop();
+
 			vector<two_hop_label_v1>& L_x = (*L)[x];
 			insert_sorted_two_hop_label(L_x, v, dx);
 			for (const auto& neighbor : instance_graph[x])
@@ -87,88 +93,86 @@ void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 				double w = neighbor.second;
 				if (v < xn)
 				{
-					if (Dis[xn] == -1.0) Dis[xn] = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L, xn, v);
-
+					if (abs(Dis[xn]+1.0)<1e-5){
+					Dis[xn] = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L, v, xn);}
 					double dnew = dx + w;
-					double Qxn = MAX_VALUE;
-					PLL_dynamic_node_for_sp* check=nullptr;
-					bool hasFind = false;
-					for (auto n : Q)
+
+					if (Dis[xn] > dnew)
 					{
-						if (n.vertex == xn)
-						{
-								check = &n;
-								hasFind = true;
-								break;
+						Dis[xn] = dnew;
+						/*更新*/
+						bool check=false;
+						for(boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp>::iterator it = Q.begin(); it != Q.end(); ++it){
+							 if (it->vertex == xn) {
+            					// 更新节点的优先级值
+								boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp>::handle_type handle = 
+								Q.s_handle_from_iterator(it);
+								(*handle).priority_value=Dis[xn];
+            					// 调整 Fibonacci 堆以维持堆的性质
+            					Q.update(handle);
+								check=true;
+            					break;
+        					}
+						}
+						if(!check){
+							PLL_dynamic_node_for_sp temp;
+							temp.vertex = xn;
+							temp.priority_value = Dis[xn];
+							Q.push(temp);
 						}
 					}
-
-						if(Dis[xn] > dnew)
-						{
-							Dis[xn] = dnew;
-							if (hasFind)
-							{
-								check->priority_value = Dis[xn];
-							}else
-							{
-								PLL_dynamic_node_for_sp new_node;
-								new_node.vertex = xn;
-								new_node.priority_value = Dis[xn];
-								Q.push(new_node);
-							}
-						}else
-						{
-							auto result = search_sorted_two_hop_label2((*L)[xn], v);
-							if(hasFind)
-							{
-								Qxn=check->priority_value;
-							}
-							int min = (Qxn > result.first) ? result.first : Qxn;
-
-							if (result.second != MAX_VALUE&& min > dnew)
-							{
-								if(hasFind)
-								{
-									check->priority_value = dnew;
-								}
-								else
-								{
-									PLL_dynamic_node_for_sp new_node;
-									new_node.vertex = xn;
-									new_node.priority_value = dnew;
-									Q.push(new_node);
-								}
-							}
-							
-							auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, v, xn);
-							if (query_result.second != x) {
-								mtx_5952[xn].lock();
-								PPR_insert(*PPR, xn, query_result.second, x);
-								mtx_5952[xn].unlock();
-							}
-							if (query_result.second != xn) {
-								mtx_5952[x].lock();
-								PPR_insert(*PPR, x, query_result.second, xn);
-								mtx_5952[x].unlock();
-							}
-
+					else
+					{
+						double Qxn=MAX_VALUE;
+						bool check=false;
+						boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp>::iterator it = Q.begin();
+						for(; it != Q.end(); ++it){
+							 if (it->vertex == xn) {
+            					Qxn=it->priority_value;
+								check=true;
+            					break;
+        					}
 						}
-				}
+						auto result = search_sorted_two_hop_label((*L)[xn], v);
+						int min = (Qxn > result) ? result : Qxn;
+						if (result != MAX_VALUE && min > dnew){
+							if(check){
+								boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp>::handle_type handle = 
+								Q.s_handle_from_iterator(it);
+								(*handle).priority_value=dnew;
+            					// 调整 Fibonacci 堆以维持堆的性质
+            					Q.update(handle);
+							}
+							else{
+								PLL_dynamic_node_for_sp temp;
+								temp.vertex = xn;
+								temp.priority_value = dnew;
+								Q.push(temp);
+							}
+						}
+						auto query_result = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc2(*L, v, xn);
+						if (query_result.second != v) {
+							mtx_5952[xn].lock();
+							PPR_insert(*PPR, xn, query_result.second, v);
+							mtx_5952[xn].unlock();
+						}
+						if (query_result.second != xn) {
+							mtx_5952[v].lock();
+							PPR_insert(*PPR, v, query_result.second, xn);
+							mtx_5952[v].unlock();
+						}
 
-				
+				}
 			}
 
 		}
 
 	}
+
+	}
 	for (auto&& result : results_dynamic){result.get();}
 	std::vector<std::future<int>>().swap(results_dynamic);
 }
-
-
-
-
-
 
 void WeightDecreaseMaintenance_improv(graph_v_of_v_idealID& instance_graph, graph_hash_of_mixed_weighted_two_hop_case_info_v1& mm, int v1, int v2, weightTYPE w_old, weightTYPE w_new,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic)
