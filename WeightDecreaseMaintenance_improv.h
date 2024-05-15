@@ -1,8 +1,6 @@
 #pragma once
-
 #include <build_in_progress/HL/dynamic/PLL_dynamic.h>
 #include <map>
-
 void WeightDecreaseMaintenance_improv_step1(int v1, int v2, weightTYPE w_new, vector<vector<two_hop_label_v1>>* L, PPR_type* PPR, std::vector<affected_label>* CL,
 	ThreadPool& pool_dynamic, std::vector<std::future<int>>& results_dynamic) 
 {
@@ -66,14 +64,12 @@ void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 		int u = cl.first;
 		int v = cl.second;
 		double du = cl.dis;
-		
 		std::vector<double>Dis(instance_graph.size(), -1.0);
 		Dis[u] = du;
 		/*u->du*/
 		PLL_dynamic_node_for_sp node;
 		node.vertex = u;
 		node.priority_value = du;
-
 		Q.push(node);
 
 		//处理
@@ -84,23 +80,27 @@ void DIFFUSE(graph_v_of_v_idealID& instance_graph, vector<vector<two_hop_label_v
 			int x = node.vertex;
 			double dx = node.priority_value;
 			Q.pop();
-
+			//L(x)[v]=dx
 			vector<two_hop_label_v1>& L_x = (*L)[x];
 			insert_sorted_two_hop_label(L_x, v, dx);
+			
 			for (const auto& neighbor : instance_graph[x])
 			{
 				int xn = neighbor.first;
 				double w = neighbor.second;
 				if (v < xn)
 				{
-					if (abs(Dis[xn]+1.0)<1e-5){
-					Dis[xn] = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L, v, xn);}
+					//Dis[xn]=-1 未初始化
+					if (abs(Dis[xn]+1.0)<1e-5)
+					{
+						Dis[xn] = graph_hash_of_mixed_weighted_two_hop_v1_extract_distance_no_reduc(*L, v, xn);
+					}
+						
 					double dnew = dx + w;
-
 					if (Dis[xn] > dnew)
 					{
 						Dis[xn] = dnew;
-						/*更新*/
+						//查找Q(xn)
 						bool check=false;
 						for(boost::heap::fibonacci_heap<PLL_dynamic_node_for_sp>::iterator it = Q.begin(); it != Q.end(); ++it){
 							 if (it->vertex == xn) {
